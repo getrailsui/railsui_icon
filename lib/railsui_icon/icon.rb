@@ -14,10 +14,38 @@ module RailsuiIcon
     end
 
     def render
+      if custom_path
+        render_custom_path(custom_path)
+      else
+        render_standard_icon
+      end
+    rescue StandardError => e
+      Rails.logger.error "Failed to render icon: #{e.message}"
+      warning
+    end
+
+    private
+
+    def render_standard_icon
       return warning unless file_exists?
 
       doc = parse_file
       svg = doc.at_css "svg"
+
+      return warning unless svg
+
+      update_svg_attributes(svg)
+      apply_default_class(svg)
+
+      doc.to_html
+    end
+
+    def render_custom_path(custom_path)
+      asset_path = "app/assets/images/#{custom_path}"
+      svg_content = File.read(asset_path)
+
+      doc = Nokogiri::HTML::DocumentFragment.parse(svg_content)
+      svg = doc.at_css('svg')
 
       return warning unless svg
 
@@ -30,19 +58,8 @@ module RailsuiIcon
       warning
     end
 
-    private
-
     def file_path
-      if custom_path && File.exist?(custom_path)
-        custom_path
-      else
-        RailsuiIcon.configuration.custom_icon_paths.each do |path|
-          potential_path = File.join(path, "#{variant}/#{name}.svg")
-          return potential_path if File.exist?(potential_path)
-        end
-
-        File.join(RailsuiIcon.root, "lib/railsui_icon/icons/#{variant}/#{name}.svg")
-      end
+      File.join(RailsuiIcon.root, "lib/railsui_icon/icons/#{variant}/#{name}.svg")
     end
 
     def file_exists?

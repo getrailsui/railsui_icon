@@ -13,7 +13,7 @@ gem "railsui_icon"
 And then execute:
 
 ```bash
- bundle install
+bundle install
 ```
 
 Run the installer
@@ -22,9 +22,7 @@ Run the installer
 rails g railsui_icon:install
 ```
 
-The installer creates a new initializer where you can set some defaults.
-
-If no defaults are set, the fallback default variant will be `:outline` with no default classes rendered.
+The installer creates a new initializer where you can assign some defaults. A variant is required. Choose from `:solid`, `:outline`, `:mini`, and `:micro`.
 
 ```ruby
 # config/initializers/railsui_icon.rb
@@ -34,7 +32,7 @@ RailsuiIcon.configure do |config|
   config.default_variant = :outline
 
   # Optionally set default classes that apply to every icon with the given variant.
-  # Make sure you update your Tailwind config if this is enabled.
+  # Make sure to update your Tailwind CSS config if you enable this setting.
   # content: [
   #  "./config/initializers/railsui_icon.rb",
   # ],
@@ -48,7 +46,22 @@ RailsuiIcon.configure do |config|
 end
 ```
 
-Optionally set a `default_variant` and `default_class` which dictate how icons will render. If you set a default class make sure you update your `tailwind.config.js` file or configuration to accomodate the `railsui_icon.rb` initializer in the content array.
+Optionally set a `default_variant` and `default_class` which dictate how icons will render.
+
+The gem will attempt to update a tailwind configuration automatically if you have one at the root of your project.
+
+If you have a tailwind configuration elsewhere in your project be sure to update your content paths to include the new initializer.
+
+```javascript
+// tailwind.config.js
+
+module.exports = {
+  content: [
+    "./config/initializers/railsui_icon.rb",
+    // ...
+  ],
+}
+```
 
 ## Usage
 
@@ -91,19 +104,22 @@ If you set default classes in your configuration you can disable those explicitl
 
 **Pass a custom icon path**
 
-If a custom path is passed the helper resolves to `app/assets/` allowing you to render any icon.
+Additional icons can be sourced from `app/assets/images`. Pass a custom path to render those. It's assumed the icon will be the `.svg` format.
 
-- An icon name is still required.
-- You will need to supply the appropriate file suffix in this scenario. i.e. `.svg`
+- An icon name or nil value for the name is still required.
+- The file suffix is required in this scenario.
 
 ```erb
-<%= icon "logo", custom_path: "/images/logo.svg" %>
+<!-- Resolves from app/assets/images/logos.svg -->
+
+<%= icon "logo", custom_path: "logo.svg" %>
+
 ```
 
 **The kitchen sink**
 
 ```erb
-<%= icon "star", variant: :micro, class: "size-3 fill-current text-pink-500", custom_path: "/custom_icons/star.svg", disable_default_class: true %>
+<%= icon "star", variant: :micro, class: "size-3 fill-current text-pink-500", custom_path: "my_icons/star.svg", disable_default_class: true %>
 ```
 
 ## Bugs

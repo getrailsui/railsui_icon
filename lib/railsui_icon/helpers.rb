@@ -2,6 +2,8 @@
 
 module RailsuiIcon
   module Helpers
+    include ActionView::Helpers::AssetUrlHelper
+
     def icon(name, options = {})
       options[:variant] ||= :outline
       options[:class] = options.fetch(:class, nil)
@@ -17,11 +19,7 @@ module RailsuiIcon
     def resolve_custom_path(path)
       return unless path
 
-      if path.start_with?("/")
-        Rails.root.join("app", "assets", path)
-      else
-        path
-      end
+      path
     end
   end
 end
