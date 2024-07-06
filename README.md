@@ -110,7 +110,7 @@ Additional icons can be sourced from `app/assets/images`. Pass a custom path to 
 - The file suffix is required in this scenario.
 
 ```erb
-<!-- Resolves from app/assets/images/logos.svg -->
+<!-- Resolves from app/assets/images/logo.svg -->
 
 <%= icon "logo", custom_path: "logo.svg" %>
 
