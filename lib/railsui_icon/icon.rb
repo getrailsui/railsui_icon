@@ -33,14 +33,16 @@ module RailsuiIcon
     private
 
     def file_path
-      return custom_path if custom_path && File.exist?(custom_path)
+      if custom_path && File.exist?(custom_path)
+        custom_path
+      else
+        RailsuiIcon.configuration.custom_icon_paths.each do |path|
+          potential_path = File.join(path, "#{variant}/#{name}.svg")
+          return potential_path if File.exist?(potential_path)
+        end
 
-      RailsuiIcon.configuration.custom_icon_paths.each do |custom_path|
-        path = File.join(custom_path, "#{variant}/#{name}.svg")
-        return path if File.exist?(path)
+        File.join(RailsuiIcon.root, "lib/railsui_icon/icons/#{variant}/#{name}.svg")
       end
-
-      File.join(RailsuiIcon.root, "lib/railsui_icon/icons/#{variant}/#{name}.svg")
     end
 
     def file_exists?
@@ -98,15 +100,7 @@ module RailsuiIcon
     end
 
     def warning
-      return unless Rails.env.development?
-
-      <<-HTML.strip
-        <script type="text/javascript">
-        //<![CDATA[
-        console.warn("Failed to find icon: #{name}")
-        //]]>
-        </script>
-      HTML
+      "<svg><text>Icon not found: #{name}</text></svg>"
     end
 
     class << self
