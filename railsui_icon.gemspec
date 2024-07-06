@@ -6,8 +6,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Andy Leverenz"]
   spec.email = ["andy@justalever.com"]
   spec.homepage = "https://github.com/getrailsui/railsui_icon"
-  spec.summary = "Icons for Ruby or Rails apps"
-  spec.description = "Helpers for rendering icons with or without Rails UI"
+  spec.summary = "Rails UI Icon simplifies integrating svg icons into Ruby on Rails apps for seamless UI development."
+  spec.description = "Rails UI Icon is a gem designed to integrate SVG icons into Ruby on Rails applications. It provides a rich library of SVG icons, helpers, and options making it a drop-in easy-to-use tool."
   spec.license = "MIT"
 
   spec.metadata["homepage_uri"] = spec.homepage
