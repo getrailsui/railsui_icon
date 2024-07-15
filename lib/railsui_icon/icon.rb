@@ -41,9 +41,23 @@ module RailsuiIcon
     end
 
     def render_custom_path(custom_path)
-      asset_path = "app/assets/images/#{custom_path}"
-      svg_content = File.read(asset_path)
+      # Check the engine's asset path first
+      engine_asset_path = Railsui::Engine.root.join("app/assets/images/#{custom_path}")
 
+      # Check the main app's asset path
+      app_asset_path = Rails.root.join("app/assets/images/#{custom_path}")
+
+      # Determine which path exists
+      asset_path = if File.exist?(engine_asset_path)
+                    engine_asset_path
+                  elsif File.exist?(app_asset_path)
+                    app_asset_path
+                  else
+                    Rails.logger.error "Asset not found: #{engine_asset_path} and #{app_asset_path}"
+                    return warning
+                  end
+
+      svg_content = File.read(asset_path)
       doc = Nokogiri::HTML::DocumentFragment.parse(svg_content)
       svg = doc.at_css('svg')
 
