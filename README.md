@@ -104,7 +104,7 @@ If you set default classes in your configuration you can disable those explicitl
 
 **Pass a custom icon path**
 
-Additional icons can be sourced from `app/assets/images`. Pass a custom path to render those. It's assumed the icon will be the `.svg` format.
+Additional icons can be sourced from `app/assets/images`. Pass a custom path to render those. It's assumed the icon will be the `.svg` format. The path should be relative with a leading slash.
 
 - An icon name or nil value for the name is still required.
 - The file suffix is required in this scenario.
@@ -112,14 +112,14 @@ Additional icons can be sourced from `app/assets/images`. Pass a custom path to 
 ```erb
 <!-- Resolves from app/assets/images/logo.svg -->
 
-<%= icon "logo", custom_path: "logo.svg" %>
+<%= icon "logo", custom_path: "/logo.svg" %>
 
 ```
 
 **The kitchen sink**
 
 ```erb
-<%= icon "star", variant: :micro, class: "size-3 fill-current text-pink-500", custom_path: "my_icons/star.svg", disable_default_class: true %>
+<%= icon "star", variant: :micro, class: "size-3 fill-current text-pink-500", custom_path: "/my_icons/star.svg", disable_default_class: true %>
 ```
 
 ## Bugs

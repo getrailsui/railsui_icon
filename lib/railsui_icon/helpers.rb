@@ -19,7 +19,6 @@ module RailsuiIcon
     def resolve_custom_path(path)
       return unless path
 
-      # Check if the custom path is relative and convert it to an absolute asset path
       if Rails.application.config.assets.paths.any? { |p| path.start_with?(p) }
         path
       else
