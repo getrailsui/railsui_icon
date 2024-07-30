@@ -15,6 +15,7 @@ module RailsuiIcon
 
     def render
       if custom_path
+        puts "🔥🔥🔥🔥🔥#{custom_path}"
         render_custom_path(custom_path)
       else
         render_standard_icon
@@ -41,21 +42,23 @@ module RailsuiIcon
     end
 
     def render_custom_path(custom_path)
-      # Check the engine's asset path first
-      engine_asset_path = Railsui::Engine.root.join("app/assets/images/#{custom_path}")
+      return warning if custom_path.blank?
 
-      # Check the main app's asset path
-      app_asset_path = Rails.root.join("app/assets/images/#{custom_path}")
+      if defined?(Railsui::Engine) && Railsui::Engine.root.present?
+        engine_asset_path = Railsui::Engine.root.join("app/assets/images#{custom_path}")
 
-      # Determine which path exists
-      asset_path = if File.exist?(engine_asset_path)
-                    engine_asset_path
-                  elsif File.exist?(app_asset_path)
-                    app_asset_path
-                  else
-                    Rails.logger.error "Asset not found: #{engine_asset_path} and #{app_asset_path}"
-                    return warning
-                  end
+        if File.exist?(engine_asset_path)
+          asset_path = engine_asset_path
+        end
+      end
+
+      app_asset_path = Rails.root.join("app/assets/images#{custom_path}")
+
+      if File.exist?(app_asset_path)
+        asset_path = app_asset_path
+      end
+
+      raise ArgumentError, "Asset path cannot be nil" if asset_path.nil?
 
       svg_content = File.read(asset_path)
       doc = Nokogiri::HTML::DocumentFragment.parse(svg_content)
