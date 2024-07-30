@@ -15,7 +15,6 @@ module RailsuiIcon
 
     def render
       if custom_path
-        puts "🔥🔥🔥🔥🔥#{custom_path}"
         render_custom_path(custom_path)
       else
         render_standard_icon
