@@ -54,7 +54,7 @@ module RailsuiIcon
       app_asset_path = Rails.root.join("app/assets/images#{custom_path}")
 
       if File.exist?(app_asset_path)
-        asset_path = app_asset_path
+        asset_path = app_asset_path.to_s
       end
 
       raise ArgumentError, "Asset path cannot be nil" if asset_path.nil?
