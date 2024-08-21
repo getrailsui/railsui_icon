@@ -19,10 +19,10 @@ module RailsuiIcon
     def resolve_custom_path(path)
       return unless path
 
-      if Rails.application.config.assets.paths.any? { |p| path.start_with?(p) }
-        path
+      if Rails.application.config.assets.paths.any? { |p| path.to_s.start_with?(p.to_s) }
+        path.to_s
       else
-        ActionController::Base.helpers.asset_path(path)
+        ActionController::Base.helpers.asset_path(path.to_s)
       end
     end
   end

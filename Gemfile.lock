@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    railsui_icon (0.1.0)
+    railsui_icon (1.0.6)
       rails (>= 5.2)
 
 GEM
