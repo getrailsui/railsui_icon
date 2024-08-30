@@ -43,15 +43,16 @@ module RailsuiIcon
     def render_custom_path(custom_path)
       return warning if custom_path.blank?
 
+      file_name = File.basename(URI.parse(custom_path).path)
       asset_path = nil
 
       if defined?(Railsui::Engine) && Railsui::Engine.root.present?
-        engine_asset_path = Railsui::Engine.root.join("app/assets/images#{custom_path}")
+        engine_asset_path = Railsui::Engine.root.join("app/assets/images", file_name)
         asset_path = engine_asset_path if File.exist?(engine_asset_path)
       end
 
       unless asset_path
-        app_asset_path = Rails.root.join("app/assets/images#{custom_path}")
+        app_asset_path = Rails.root.join("app/assets/images", file_name)
         asset_path = app_asset_path.to_s if File.exist?(app_asset_path)
       end
 
