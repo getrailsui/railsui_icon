@@ -43,21 +43,18 @@ module RailsuiIcon
     def render_custom_path(custom_path)
       return warning if custom_path.blank?
 
-      file_name = File.basename(URI.parse(custom_path).path)
-      asset_path = nil
+      # Strip leading slashes from custom_path
+      sanitized_path = custom_path.sub(%r{^/}, '')
 
-      if defined?(Railsui::Engine) && Railsui::Engine.root.present?
-        engine_asset_path = Railsui::Engine.root.join("app/assets/images", file_name)
-        asset_path = engine_asset_path if File.exist?(engine_asset_path)
-      end
+      # Extract file name from sanitized_path
+      file_name = File.basename(URI.parse(sanitized_path).path)
 
-      unless asset_path
-        app_asset_path = Rails.root.join("app/assets/images", file_name)
-        asset_path = app_asset_path.to_s if File.exist?(app_asset_path)
-      end
+      # Attempt to find the asset in subdirectories of app/assets/images
+      asset_path = find_asset_path(sanitized_path)
 
       raise ArgumentError, "Asset path cannot be found" if asset_path.nil?
 
+      # Read the SVG content
       svg_content = File.read(asset_path)
       doc = Nokogiri::HTML::DocumentFragment.parse(svg_content)
       svg = doc.at_css('svg')
@@ -71,6 +68,17 @@ module RailsuiIcon
     rescue StandardError => e
       Rails.logger.error "Failed to render icon: #{e.message}"
       warning
+    end
+
+    private
+
+    def find_asset_path(file_name)
+      # Check in the main app/assets/images directory
+      path = Rails.root.join('app/assets/images', file_name)
+      return path.to_s if File.exist?(path)
+
+      # Check in any subdirectories within app/assets/images
+      Dir[Rails.root.join('app/assets/images/**/*', file_name)].first
     end
 
     def file_path
