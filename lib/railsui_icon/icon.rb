@@ -43,14 +43,11 @@ module RailsuiIcon
     def render_custom_path(custom_path)
       return warning if custom_path.blank?
 
-      # Strip leading slashes from custom_path
-      sanitized_path = custom_path.sub(%r{^/}, '')
-
-      # Extract file name from sanitized_path
-      file_name = File.basename(URI.parse(sanitized_path).path)
+      # Extract file name from custom_path
+      file_name = File.basename(URI.parse(custom_path).path)
 
       # Attempt to find the asset in subdirectories of app/assets/images
-      asset_path = find_asset_path(sanitized_path)
+      asset_path = find_asset_path(file_name)
 
       raise ArgumentError, "Asset path cannot be found" if asset_path.nil?
 
@@ -70,6 +67,16 @@ module RailsuiIcon
       warning
     end
 
+    private
+
+    def find_asset_path(file_name)
+      # Check in the main app/assets/images directory
+      path = Rails.root.join('app/assets/images', file_name)
+      return path.to_s if File.exist?(path)
+
+      # Check in any subdirectories within app/assets/images
+      Dir[Rails.root.join('app/assets/images/**/*', file_name)].first
+    end
     private
 
     def find_asset_path(file_name)
