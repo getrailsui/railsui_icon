@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RailsUI Icon Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="p-8 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-4xl font-bold mb-8 text-gray-900">RailsUI Icon Test Suite</h1>
+
+      <div class="grid gap-8">
+        <!-- Default Configuration -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Default Configuration</h2>
+          <div class="bg-gray-100 p-4 rounded text-sm font-mono mb-4">
+            <p>Library: <%= RailsuiIcon.configuration.default_library %></p>
+            <p>Variant: <%= RailsuiIcon.configuration.default_variant %></p>
+          </div>
+          <div class="flex items-center gap-4">
+            <%= icon "star" %>
+            <span class="text-gray-600">Default star icon (should have size-5 stroke-current)</span>
+          </div>
+        </section>
+
+        <!-- Heroicons Variants -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Heroicons Variants</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", variant: :outline %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Outline</p>
+              <p class="text-xs text-gray-500">size-5 stroke-current</p>
+            </div>
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", variant: :solid %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Solid</p>
+              <p class="text-xs text-gray-500">size-5 fill-current</p>
+            </div>
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", variant: :mini %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Mini</p>
+              <p class="text-xs text-gray-500">size-3 fill-current</p>
+            </div>
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", variant: :micro %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Micro</p>
+              <p class="text-xs text-gray-500">size-3 fill-current</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Different Libraries -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Different Libraries</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", library: :heroicons %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Heroicons</p>
+              <p class="text-xs text-gray-500">Default library</p>
+            </div>
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "astronomy-ufo", library: :solar, variant: :outline %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Solar</p>
+              <p class="text-xs text-gray-500">Linear variant</p>
+            </div>
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "star", library: :lucide %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Lucide</p>
+              <p class="text-xs text-gray-500">Flat structure</p>
+            </div>
+
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "mask-happy", library: :phosphoric, variant: :regular, class: "size-6" %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Phosphoric</p>
+              <p class="text-xs text-gray-500">Bold variant</p>
+            </div>
+
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "speaker", library: :feather %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Feather</p>
+              <p class="text-xs text-gray-500">Flat structure</p>
+            </div>
+
+            <div class="text-center p-4 border rounded flex flex-col items-center">
+              <%= icon "8-ball", library: :boxicons, variant: :outline %>
+              <p class="text-sm text-gray-600 mt-2 font-semibold">Boxicons</p>
+              <p class="text-xs text-gray-500">Outline variant</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Custom Styling -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Custom Styling</h2>
+          <div class="flex gap-6 items-center flex-wrap">
+            <%= icon "star", class: "size-6 text-red-500" %>
+            <%= icon "star", class: "size-8 text-blue-500" %>
+            <%= icon "star", class: "size-12 text-green-500" %>
+            <%= icon "star", class: "size-16 text-purple-500" %>
+            <%= icon "star", class: "size-20 text-pink-500" %>
+          </div>
+          <p class="text-sm text-gray-600 mt-4">Custom classes merge with default classes</p>
+        </section>
+
+        <!-- Path-based Names -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Path-based Names</h2>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center gap-3 p-3 border rounded">
+              <%= icon "heroicons/outline/star" %>
+              <code class="text-sm">heroicons/outline/star</code>
+            </div>
+            <div class="flex items-center gap-3 p-3 border rounded">
+              <%= icon "heroicons/solid/star" %>
+              <code class="text-sm">heroicons/solid/star</code>
+            </div>
+            <div class="flex items-center gap-3 p-3 border rounded">
+              <%= icon "outline/star" %>
+              <code class="text-sm">outline/star</code>
+            </div>
+            <div class="flex items-center gap-3 p-3 border rounded">
+              <%= icon "solid/star" %>
+              <code class="text-sm">solid/star</code>
+            </div>
+          </div>
+        </section>
+
+        <!-- Class Merging Examples -->
+        <section class="bg-white p-6 rounded-lg shadow">
+          <h2 class="text-2xl font-semibold mb-4">Class Merging</h2>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4 p-3 border rounded">
+              <%= icon "star" %>
+              <div>
+                <p class="font-semibold">Default classes only</p>
+                <code class="text-xs text-gray-500">size-5 stroke-current</code>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 p-3 border rounded">
+              <%= icon "star", class: "text-red-500" %>
+              <div>
+                <p class="font-semibold">Default + custom classes</p>
+                <code class="text-xs text-gray-500">size-5 stroke-current text-red-500</code>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 p-3 border rounded">
+              <%= icon "star", class: "size-8 text-blue-500 hover:text-blue-700" %>
+              <div>
+                <p class="font-semibold">Override size + add custom</p>
+                <code class="text-xs text-gray-500">size-5 stroke-current size-8 text-blue-500 hover:text-blue-700</code>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

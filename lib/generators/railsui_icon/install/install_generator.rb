@@ -1,18 +1,24 @@
+# frozen_string_literal: true
+
 module RailsuiIcon
   module Generators
     class InstallGenerator < Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
-      def create_initializer_file
-        template "railsui_icon.rb", "config/initializers/railsui_icon.rb"
-      end
+      def copy_initializer
+        config_file = "config/initializers/railsui_icon.rb"
 
-      def update_tailwind_config
-        tailwind_config_path = Rails.root.join("tailwind.config.js")
-        return unless File.exist?(tailwind_config_path)
-
-        insert_into_file tailwind_config_path.to_s, after: /content: \[\n/ do
-          "    \"./config/initializers/railsui_icon.rb\",\n"
+        if File.exist?(Rails.root.join(config_file))
+          say "Existing Rails UI Icon configuration found.", :yellow
+          if yes?("Do you want to backup and regenerate the configuration file? (y/n)")
+            copy_file "railsui_icon.rb.tt", "#{config_file}.backup"
+            say "Backed up existing config to #{config_file}.backup", :green
+            template "railsui_icon.rb.tt", config_file, force: true
+          else
+            say "Skipping configuration file generation. Your existing config will continue to work.", :blue
+          end
+        else
+          template "railsui_icon.rb.tt", config_file
         end
       end
     end

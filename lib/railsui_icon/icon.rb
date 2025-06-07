@@ -1,159 +1,247 @@
-require "nokogiri"
+# frozen_string_literal: true
 
 module RailsuiIcon
   class Icon
-    VALID_VARIANTS = %i[solid outline mini micro].freeze
+    attr_reader :name, :variant, :library, :custom_path, :options
 
-    attr_reader :name, :variant, :options, :custom_path
-
-    def initialize(name:, variant: RailsuiIcon.configuration.default_variant, options: {}, custom_path: nil)
-      @name = name
-      @variant = validate_variant(variant)
-      @options = options
+    def initialize(name, variant: nil, library: nil, custom_path: nil, **options)
+      @name = name.to_s.downcase  # Normalize case
+      @variant = (variant || RailsuiIcon.configuration.default_variant).to_sym
+      @library = (library || RailsuiIcon.configuration.default_library).to_sym
       @custom_path = custom_path
+      @options = options
     end
 
-    def render
-      if custom_path
-        render_custom_path(custom_path)
+    def to_svg
+      svg_content = fetch_svg_content
+      return default_svg if svg_content.nil?
+
+      apply_options_to_svg(svg_content)
+    end
+
+    private
+
+    def fetch_svg_content
+      cache_key = "#{@library}/#{@variant}/#{@name}"
+
+      if defined?(Rails) && Rails.env.production? && Rails.cache
+        Rails.cache.fetch("railsui_icon/#{cache_key}") do
+          read_svg_content
+        end
       else
-        render_standard_icon
+        read_svg_content
       end
-    rescue StandardError => e
-      Rails.logger.error "Failed to render icon: #{e.message}"
-      warning
     end
 
-    private
+    def read_svg_content
+      # This bypasses the security validation in resolve_custom_path
+      if @custom_path
+        return File.read(@custom_path) if File.exist?(@custom_path)
+      end
 
-    def render_standard_icon
-      return warning unless file_exists?
+      # Try path-based resolution (e.g., "heroicons/solid/home")
+      custom_resolved_path = resolve_path_based_name
+      return File.read(custom_resolved_path) if custom_resolved_path && File.exist?(custom_resolved_path)
 
-      doc = parse_file
-      svg = doc.at_css "svg"
+      # Check if this library uses flat structure
+      if library_uses_flat_structure?(@library)
+        svg_path = flat_icon_path(@library)
+        if svg_path && File.exist?(svg_path)
+          if File.size(svg_path) > 1.megabyte
+            Rails.logger.warn "RailsuiIcon: Icon file too large: #{svg_path}" if defined?(Rails)
+            return nil
+          end
+          return File.read(svg_path)
+        end
+      else
+        # Try the configured library and requested variant
+        svg_path = icon_path(@library, @variant)
+        return File.read(svg_path) if File.exist?(svg_path)
 
-      return warning unless svg
+        # Fallback: try other variants in the same library
+        fallback_variants.each do |fallback_variant|
+          svg_path = icon_path(@library, fallback_variant)
+          return File.read(svg_path) if File.exist?(svg_path)
+        end
+      end
 
-      update_svg_attributes(svg)
-      apply_default_class(svg)
-
-      doc.to_html
+      nil
+    rescue => e
+      Rails.logger.warn "RailsuiIcon: Error reading icon #{@name} (#{@library}/#{@variant}): #{e.message}" if defined?(Rails)
+      nil
     end
 
-    def render_custom_path(custom_path)
-      return warning if custom_path.blank?
+    def gem_root_path
+      # Find the gem root by looking for the gemspec file
+      current_dir = File.dirname(__FILE__)
 
-      # Extract file name from custom_path
-      file_name = File.basename(URI.parse(custom_path).path)
+      # Keep going up directories until we find the gemspec
+      while current_dir != "/" && current_dir != "."
+        if Dir.glob(File.join(current_dir, "*.gemspec")).any?
+          return current_dir
+        end
+        current_dir = File.dirname(current_dir)
+      end
 
-      # Attempt to find the asset in subdirectories of app/assets/images
-      asset_path = find_asset_path(file_name)
+      # Fallback to the old method
+      File.expand_path("../../..", __FILE__)
+    end
 
-      raise ArgumentError, "Asset path cannot be found" if asset_path.nil?
+    def icons_base_path
+      # This file is at: lib/railsui_icon/icon.rb
+      # Icons are at: lib/railsui_icon/icons/
+      File.join(File.dirname(__FILE__), "icons")
+    end
 
-      # Read the SVG content
-      svg_content = File.read(asset_path)
+    def icon_path(library, variant)
+      # First try the Rails app directory (for user customization)
+      if defined?(Rails) && Rails.root
+        app_path = Rails.root.join("app", "assets", "icons", library.to_s, variant.to_s, "#{@name}.svg")
+        return app_path if File.exist?(app_path)
+      end
+
+      # Then try the gem's icons directory
+      gem_path = File.join(icons_base_path, library.to_s, variant.to_s, "#{@name}.svg")
+      return gem_path if File.exist?(gem_path)
+
+      # Return the app path as fallback
+      defined?(Rails) && Rails.root ? Rails.root.join("app", "assets", "icons", library.to_s, variant.to_s, "#{@name}.svg") : gem_path
+    end
+
+    def flat_icon_path(library)
+      # First try the Rails app directory
+      if defined?(Rails) && Rails.root
+        app_path = Rails.root.join("app", "assets", "icons", library.to_s, "#{@name}.svg")
+        return app_path if File.exist?(app_path)
+      end
+
+      # Then try the gem's icons directory
+      gem_path = File.join(icons_base_path, library.to_s, "#{@name}.svg")
+      return gem_path if File.exist?(gem_path)
+
+      defined?(Rails) && Rails.root ? Rails.root.join("app", "assets", "icons", library.to_s, "#{@name}.svg") : gem_path
+    end
+
+    def library_uses_flat_structure?(library)
+      # Check Rails app directory first
+      if defined?(Rails) && Rails.root
+        app_library_path = Rails.root.join("app", "assets", "icons", library.to_s)
+        if Dir.exist?(app_library_path)
+          return Dir.glob(File.join(app_library_path, "*.svg")).any?
+        end
+      end
+
+      # Check gem directory
+      gem_library_path = File.join(icons_base_path, library.to_s)
+      return false unless Dir.exist?(gem_library_path)
+
+      Dir.glob(File.join(gem_library_path, "*.svg")).any?
+    end
+
+    def resolve_path_based_name
+      # Handle explicit paths in the name (e.g., "heroicons/solid/home")
+      if @name.include?("/")
+        parts = @name.split("/")
+        if parts.length == 3
+          # Format: library/variant/icon_name
+          library, variant, icon_name = parts
+          icon_name = icon_name.sub(/\.svg$/, '')
+
+          # Try Rails app first
+          if defined?(Rails) && Rails.root
+            app_path = Rails.root.join("app", "assets", "icons", library, variant, "#{icon_name}.svg")
+            return app_path if File.exist?(app_path)
+          end
+
+          # Try gem directory
+          gem_path = File.join(icons_base_path, library, variant, "#{icon_name}.svg")
+          return gem_path if File.exist?(gem_path)
+
+        elsif parts.length == 2
+          # Format: variant/icon_name (using configured library)
+          variant, icon_name = parts
+          icon_name = icon_name.sub(/\.svg$/, '')
+
+          # Try Rails app first
+          if defined?(Rails) && Rails.root
+            app_path = Rails.root.join("app", "assets", "icons", @library.to_s, variant, "#{icon_name}.svg")
+            return app_path if File.exist?(app_path)
+          end
+
+          # Try gem directory
+          gem_path = File.join(icons_base_path, @library.to_s, variant, "#{icon_name}.svg")
+          return gem_path if File.exist?(gem_path)
+        end
+      end
+
+      nil
+    end
+
+    def fallback_variants
+      case @library
+      when :feather
+        [] # Flat structure, no variants
+      when :boxicons
+        [:outline, :solid] - [@variant]
+      when :phosphoric
+        [:bold, :duotone, :fill, :light, :regular, :thin] - [@variant]
+      when :solar
+        [:linear, :outline, :broken, :bold, :bold_duotone, :line_duotone] - [@variant]
+      when :heroicons
+        [:outline, :solid, :mini, :micro] - [@variant]
+      when :lucide
+        [] # Flat structure, no variants
+      else
+        [:outline, :solid, :linear] - [@variant]
+      end
+    end
+
+    def apply_options_to_svg(svg_content)
       doc = Nokogiri::HTML::DocumentFragment.parse(svg_content)
-      svg = doc.at_css('svg')
+      svg = doc.at_css("svg")
 
-      return warning unless svg
+      return svg_content unless svg
 
-      update_svg_attributes(svg)
-      apply_default_class(svg)
-
-      doc.to_html
-    rescue StandardError => e
-      Rails.logger.error "Failed to render icon: #{e.message}"
-      warning
-    end
-
-    private
-
-    def find_asset_path(file_name)
-      # Check in the main app/assets/images directory
-      path = Rails.root.join('app/assets/images', file_name)
-      return path.to_s if File.exist?(path)
-
-      # Check in any subdirectories within app/assets/images
-      Dir[Rails.root.join('app/assets/images/**/*', file_name)].first
-    end
-    private
-
-    def find_asset_path(file_name)
-      # Check in the main app/assets/images directory
-      path = Rails.root.join('app/assets/images', file_name)
-      return path.to_s if File.exist?(path)
-
-      # Check in any subdirectories within app/assets/images
-      Dir[Rails.root.join('app/assets/images/**/*', file_name)].first
-    end
-
-    def file_path
-      File.join(RailsuiIcon.root, "lib/railsui_icon/icons/#{variant}/#{name}.svg")
-    end
-
-    def file_exists?
-      File.exist?(file_path)
-    end
-
-    def parse_file
-      Nokogiri::HTML::DocumentFragment.parse(File.read(file_path).force_encoding("UTF-8"))
-    end
-
-    def update_svg_attributes(svg)
-      update_svg_options(svg)
-    end
-
-    def update_svg_options(svg)
-      options.each do |key, value|
-        svg[key.to_s.dasherize] = value
-      end
-    end
-
-    def apply_default_class(svg)
-      return if disable_default_class?
-
-      default_classes = combine_classes_with_default_class
-      svg[:class] = default_classes if default_classes.present?
-    end
-
-    def combine_classes_with_default_class
-      default_class_list.concat(additional_class_list).uniq.join(" ")
-    end
-
-    def default_class_list
-      default_class.split.compact
-    end
-
-    def additional_class_list
-      (options[:class] || "").split.compact
-    end
-
-    def default_class
-      config_default_class = RailsuiIcon.configuration.default_class
-      config_default_class.is_a?(Hash) ? config_default_class[variant] : config_default_class.to_s
-    end
-
-    def disable_default_class?
-      options.delete(:disable_default_class)
-    end
-
-    def validate_variant(provided_variant)
-      unless VALID_VARIANTS.include?(provided_variant.to_sym)
-        raise ArgumentError, "Invalid variant: #{provided_variant}. Valid variants are: #{VALID_VARIANTS.join(', ')}"
+      # Basic XSS protection - remove script tags and event handlers
+      svg.xpath(".//script").remove
+      svg.xpath(".//*[@*[starts-with(name(), 'on')]]").each do |node|
+        node.attributes.each { |name, attr| node.remove_attribute(name) if name.start_with?('on') }
       end
 
-      provided_variant.to_sym
-    end
+      # Apply CSS classes
+      css_classes = build_css_classes
+      svg["class"] = css_classes if css_classes.present?
 
-    def warning
-      "<svg><text>Icon not found: #{name}</text></svg>"
-    end
-
-    class << self
-      def render(**kwargs)
-        new(**kwargs).render
+      # Apply other HTML attributes
+      @options.each do |key, value|
+        next if key == :class
+        svg[key.to_s] = value.to_s
       end
+
+      doc.to_html.html_safe
+    end
+
+    def build_css_classes
+      classes = []
+
+      # Add this check
+      return @options[:class].to_s if @options[:disable_default_class]
+
+      # For flat libraries, use the library name as the variant for class lookup
+      lookup_variant = library_uses_flat_structure?(@library) ? @library : @variant
+
+      # Add default classes for this library/variant
+      default_class = RailsuiIcon.configuration.default_class_for(@library, lookup_variant)
+      classes << default_class if default_class.present?
+
+      # Add custom classes from options
+      classes << @options[:class] if @options[:class].present?
+
+      classes.join(" ").strip
+    end
+
+    def default_svg
+      %(<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>).html_safe
     end
   end
 end

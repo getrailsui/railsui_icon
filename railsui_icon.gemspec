@@ -4,20 +4,24 @@ Gem::Specification.new do |spec|
   spec.name = "railsui_icon"
   spec.version = RailsuiIcon::VERSION
   spec.authors = ["Andy Leverenz"]
-  spec.email = ["andy@justalever.com"]
+  spec.email = ["info@railsui.com"]
   spec.homepage = "https://github.com/getrailsui/railsui_icon"
-  spec.summary = "Rails UI Icon simplifies integrating svg icons into Ruby on Rails apps for seamless UI development."
-  spec.description = "Rails UI Icon is a gem designed to integrate SVG icons into Ruby on Rails applications. It provides a rich library of SVG icons, helpers, and options making it a drop-in easy-to-use tool."
+  spec.summary = "Icon helper for Rails applications"
+  spec.description = "Render Heroicons, Solar Icons, and Lucide Icons in Rails applications"
   spec.license = "MIT"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/getrailsui/railsui_icon"
 
-  spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
-  end
+  # Include the icon assets in the gem
+  spec.files = Dir["{lib}/**/*", "README.md"]
+  spec.require_paths = ["lib"]
 
-  spec.add_dependency "rails", ">= 5.2"
+  spec.add_dependency "nokogiri", ">= 1.6"
+  spec.add_dependency "rails", ">= 6.0"
+
+  spec.add_dependency "logger" if RUBY_VERSION >= "3.4"
+  spec.add_dependency "benchmark" if RUBY_VERSION >= "3.4"
 
   spec.add_development_dependency "standard"
   spec.add_development_dependency "sqlite3", "~> 1.4"

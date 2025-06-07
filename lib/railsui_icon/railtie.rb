@@ -19,10 +19,10 @@ module RailsuiIcon
     end
 
     rake_tasks do
-      load "tasks/railsui_icon_tasks.rake"
+      load File.expand_path('../tasks.rb', __FILE__)
     end
 
-    initializer "railsui_icon.action_view" do
+    initializer "railsui_icon.helpers" do
       ActiveSupport.on_load(:action_view) do
         include RailsuiIcon::Helpers
       end

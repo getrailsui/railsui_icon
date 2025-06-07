@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>RailsUI Icon Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="p-8">
+    <h1 class="text-2xl font-bold mb-6">RailsUI Icon Test</h1>
+
+    <div class="space-y-4">
+      <h2 class="text-xl font-semibold">Basic Icon</h2>
+      <%= icon "star" %>
+
+      <h2 class="text-xl font-semibold">With Classes</h2>
+      <%= icon "star", class: "size-8 text-red-500" %>
+
+      <h2 class="text-xl font-semibold">Different Variants</h2>
+      <div class="flex gap-4">
+        <%= icon "star", variant: :outline %>
+        <%= icon "star", variant: :solid %>
+        <%= icon "star", variant: :mini %>
+        <%= icon "star", variant: :micro %>
+      </div>
+
+      <h2 class="text-xl font-semibold">Different Libraries</h2>
+      <div class="flex gap-4">
+        <%= icon "star", library: :heroicons %>
+        <%= icon "star", library: :solar %>
+        <%= icon "star", library: :lucide %>
+      </div>
+
+      <h2 class="text-xl font-semibold">Path-based Names</h2>
+      <%= icon "heroicons/solid/star" %>
+      <%= icon "solar/bold/star" %>
+    </div>
+  </body>
+</html>

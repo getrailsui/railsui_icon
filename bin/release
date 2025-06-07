@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+VERSION=$1
+
+printf "module RailsuiIcon\n  VERSION = \"$VERSION\"\nend\n" > ./lib/railsui_icon/version.rb
+bundle
+git add Gemfile.lock lib/railsui_icon/version.rb
+git commit -m "Bump version for $VERSION"
+git push
+git tag v$VERSION
+git push --tags
+gem build railsui_icon.gemspec
+gem push "railsui_icon-$VERSION.gem" --host https://rubygems.org
+rm "railsui_icon-$VERSION.gem"
