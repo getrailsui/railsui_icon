@@ -20,5 +20,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "rails", ">= 5.2"
 
   spec.add_development_dependency "standard"
-  spec.add_development_dependency "sqlite3", "~> 1.4"
+  spec.add_development_dependency "sqlite3", "~> 2.10"
 end
